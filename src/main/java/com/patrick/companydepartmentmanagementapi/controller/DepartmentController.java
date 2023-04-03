@@ -26,15 +26,13 @@ public class DepartmentController {
     private DepartmentRepository departmentRepository;
 
     @GetMapping
-    public @ResponseBody List<Department> list() {
-        return departmentRepository.findAll();
-    }
-
-    @GetMapping
     @RequestMapping(name = "/api/departments")
-    public @ResponseBody List<Department> listByCompanyId(@RequestParam Long companyId) {
+    public @ResponseBody List<Department> listByCompanyId(@RequestParam(required = false) Long companyId) {
         var company = new Company();
         company.setId((companyId));
+
+        if (companyId == null || companyId == 0)
+            return departmentRepository.findAll();
 
         return departmentRepository.findByCompany(company);
     }

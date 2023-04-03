@@ -8,7 +8,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import com.patrick.companydepartmentmanagementapi.model.Company;
+import com.patrick.companydepartmentmanagementapi.model.Department;
 import com.patrick.companydepartmentmanagementapi.repository.CompanyRepository;
+import com.patrick.companydepartmentmanagementapi.repository.DepartmentRepository;
+import com.patrick.companydepartmentmanagementapi.repository.EmployeeRepository;
 
 @SpringBootApplication
 public class CompanyDepartmentManagementApiApplication {
@@ -18,7 +21,7 @@ public class CompanyDepartmentManagementApiApplication {
 	}
 
 	@Bean
-	CommandLineRunner initDatabase(CompanyRepository companyRepository) {
+	CommandLineRunner initDatabase(CompanyRepository companyRepository, DepartmentRepository departmentRepository) {
 		return args -> {
 			companyRepository.deleteAll();
 
@@ -33,6 +36,21 @@ public class CompanyDepartmentManagementApiApplication {
 			c.setPhone("+5521965715636");
 			
 			companyRepository.save(c);
+
+			departmentRepository.deleteAll();
+
+			Department d = new Department();
+			d.setCreatedBy("Teste criação");
+			d.setCreatedDate(new Date());
+			d.setModifiedBy("Teste modificação");
+			d.setModifiedDate(new Date());
+			d.setStatus(true);
+			d.setDescription("Teste descrição XPTO blá blá blá");
+			d.setName("Teste Departamento XPTO");
+			d.setPhone("+5521965715636");
+			d.setCompany(c);
+			
+			departmentRepository.save(d);
 		};
 	}
 }

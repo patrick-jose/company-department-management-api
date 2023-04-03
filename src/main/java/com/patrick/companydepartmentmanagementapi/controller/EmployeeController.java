@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.patrick.companydepartmentmanagementapi.controller.DTO.NewEmployeeDTO;
 import com.patrick.companydepartmentmanagementapi.model.Department;
 import com.patrick.companydepartmentmanagementapi.model.DepartmentEmployee;
 import com.patrick.companydepartmentmanagementapi.model.Employee;
@@ -31,24 +32,23 @@ public class EmployeeController {
     private DepartmentEmployeeRepository departmentEmployeeRepository;
 
     @GetMapping
-    public @ResponseBody List<Employee> list() {
-        return employeeRepository.findAll();
-    }
-
-    @GetMapping
     @RequestMapping(name = "/api/employees")
-    public @ResponseBody List<Optional<Employee>> listByCompanyId(@RequestParam Long departmentId) {
+    public @ResponseBody List<Employee> listByDepartmentId(@RequestParam(required = false) Long departmentId) {
         var department = new Department();
         department.setId((departmentId));
 
+        if (departmentId == null || departmentId == 0)
+            return employeeRepository.findAll();
+
         var departmentEmployee = departmentEmployeeRepository.findByDepartment(department);
 
-        var employeeList = new ArrayList<Optional<Employee>>();
+        var employeeList = new ArrayList<Employee>();
 
         for (DepartmentEmployee item : departmentEmployee) {
             var employee = employeeRepository.findById(item.getEmployee().getId());
 
-            employeeList.add(employee);
+            if (employee.isPresent())
+                employeeList.add(employee.get());
         }
 
         return employeeList;
@@ -56,17 +56,24 @@ public class EmployeeController {
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    public Employee create(@RequestBody Employee employee, Department department) {
+    public Employee create(@RequestBody NewEmployeeDTO employee) {
         var departmentEmployee = new DepartmentEmployee();
 
-        departmentEmployee.setCreatedBy(employee.getCreatedBy());
-        departmentEmployee.setCreatedDate(employee.getCreatedDate());
-        departmentEmployee.setModifiedBy(employee.getModifiedBy());
+        departmentEmployee.setCreatedBy(employee.getEmployee().getCreatedBy());
+        departmentEmployee.setCreatedDate(employee.getEmployee().getCreatedDate());
+        departmentEmployee.setModifiedBy(employee.getEmployee().getModifiedBy());
+        departmentEmployee.setModifiedDate(employee.getEmployee().getModifiedDate());
         departmentEmployee.setStatus(true);
-        departmentEmployee.setDepartment(department);
-        departmentEmployee.setEmployee(employee);
+        departmentEmployee.setDepartment(employee.getDepartment());
+        departmentEmployee.setEmployee(employee.getEmployee());
 
-        departmentEmployeeRepository.save(departmentEmployee);
-        return employeeRepository.save(employee);
+        var newEmployeeResult = employeeRepository.save(employee.getEmployee());
+
+        departmentEmployee.setEmployee(newEmployeeResult);
+        
+        if (newEmployeeResult != null)
+            departmentEmployeeRepository.save(departmentEmployee);
+        
+        return newEmployeeResult;
     }
 }
