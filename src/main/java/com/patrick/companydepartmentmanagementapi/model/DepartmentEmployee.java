@@ -1,6 +1,7 @@
 package com.patrick.companydepartmentmanagementapi.model;
 
 import java.util.Date;
+import java.util.Optional;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,4 +44,9 @@ public class DepartmentEmployee {
     @OneToOne
     @JoinColumn(name = "id_employee")
     private Employee employee;
+
+    public void setDepartmentOptional(Optional<Department> department) {
+        if (department.isPresent())
+            this.department = department.get();
+    }
 }

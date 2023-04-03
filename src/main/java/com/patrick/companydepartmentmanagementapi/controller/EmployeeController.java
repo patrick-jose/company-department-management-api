@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,11 +15,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.patrick.companydepartmentmanagementapi.controller.DTO.DepartmentEmployeeDTO;
 import com.patrick.companydepartmentmanagementapi.controller.DTO.NewEmployeeDTO;
 import com.patrick.companydepartmentmanagementapi.model.Department;
 import com.patrick.companydepartmentmanagementapi.model.DepartmentEmployee;
 import com.patrick.companydepartmentmanagementapi.model.Employee;
 import com.patrick.companydepartmentmanagementapi.repository.DepartmentEmployeeRepository;
+import com.patrick.companydepartmentmanagementapi.repository.DepartmentRepository;
 import com.patrick.companydepartmentmanagementapi.repository.EmployeeRepository;
 
 import lombok.AllArgsConstructor;
@@ -30,9 +33,9 @@ public class EmployeeController {
     
     private EmployeeRepository employeeRepository;
     private DepartmentEmployeeRepository departmentEmployeeRepository;
+    private DepartmentRepository departmentRepository;
 
     @GetMapping
-    @RequestMapping(name = "/api/employees")
     public @ResponseBody List<Employee> listByDepartmentId(@RequestParam(required = false) Long departmentId) {
         var department = new Department();
         department.setId((departmentId));
@@ -52,6 +55,12 @@ public class EmployeeController {
         }
 
         return employeeList;
+    }
+
+    @GetMapping()
+    @RequestMapping("byId")
+    public @ResponseBody Optional<Employee> getById(@RequestParam Long id) {
+        return employeeRepository.findById(id);
     }
 
     @PostMapping
@@ -75,5 +84,26 @@ public class EmployeeController {
             departmentEmployeeRepository.save(departmentEmployee);
         
         return newEmployeeResult;
+    }
+
+    @PutMapping
+    @ResponseStatus(code = HttpStatus.OK)
+    public Employee update(@RequestBody Employee employee) {
+        return employeeRepository.save(employee);
+    }
+
+    @PutMapping("department")
+    @ResponseStatus(code = HttpStatus.OK)
+    public DepartmentEmployee updateDepartmentEmployee(@RequestBody DepartmentEmployeeDTO departmentEmployee) {
+        var employee = employeeRepository.findById(departmentEmployee.getIdEmployee());
+        var department = departmentRepository.findById(departmentEmployee.getIdDepartment());
+        var item = departmentEmployeeRepository.findByEmployee(employee);
+
+        item.setModifiedBy(departmentEmployee.getModifiedBy());
+        item.setDepartmentOptional(department);
+        item.setModifiedDate(departmentEmployee.getModifiedDate());
+        item.setStatus(departmentEmployee.getStatus());
+
+        return departmentEmployeeRepository.save(item);
     }
 }

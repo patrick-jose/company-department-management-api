@@ -1,10 +1,12 @@
 package com.patrick.companydepartmentmanagementapi.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,7 +28,6 @@ public class DepartmentController {
     private DepartmentRepository departmentRepository;
 
     @GetMapping
-    @RequestMapping(name = "/api/departments")
     public @ResponseBody List<Department> listByCompanyId(@RequestParam(required = false) Long companyId) {
         var company = new Company();
         company.setId((companyId));
@@ -37,9 +38,21 @@ public class DepartmentController {
         return departmentRepository.findByCompany(company);
     }
 
+    @GetMapping()
+    @RequestMapping("byId")
+    public @ResponseBody Optional<Department> getById(@RequestParam Long id) {
+        return departmentRepository.findById(id);
+    }
+
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public Department create(@RequestBody Department department) {
+        return departmentRepository.save(department);
+    }
+
+    @PutMapping
+    @ResponseStatus(code = HttpStatus.OK)
+    public Department update(@RequestBody Department department) {
         return departmentRepository.save(department);
     }
 }
